@@ -1,0 +1,268 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ */
+package com.mycompany.weee;
+
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class App {
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        ArrayList<String> customerList = new ArrayList<>();
+        ArrayList<String> archiveList = new ArrayList<>(); 
+        
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM-dd-yyyy hh:mm:ss a");
+        boolean running = true;
+
+        while (running) {
+            System.out.println("\n--- MAIN DASHBOARD ---");
+            System.out.println("1. ADMIN\n2. STAFF\n3. EXIT");
+            System.out.print("Enter choice: ");
+            String mainChoice = sc.nextLine();
+
+            if (mainChoice.equals("1")) {
+                boolean authenticated = false;
+                while (!authenticated) {
+                    System.out.println("\n--- Admin Login Required ---");
+                    System.out.print("Enter Username: ");
+                    String user = sc.nextLine();
+                    System.out.print("Enter Password: ");
+                    String pass = sc.nextLine();
+
+                    if (user.equals("admin") && pass.equals("123")) {
+                        System.out.println("Welcome Admin!");
+                        authenticated = true;
+                    } else {
+                        System.out.println("Invalid. Try again.");
+                    }
+                }
+
+                boolean inAdmin = true;
+                while (inAdmin) {
+                    System.out.println("\n--- ADMIN PANEL ---");
+                    System.out.println("1. VIEW ACTIVE CUSTOMERS\n2. VIEW ARCHIVE\n3. UPDATE/ARCHIVE RECORDS\n4. Dashboard");
+                    System.out.print("Enter choice: ");
+                    String adminChoice = sc.nextLine();
+
+                    if (adminChoice.equals("1")) {
+                        System.out.println("\n--- CURRENT ACTIVE CUSTOMER RECEIPTS ---");
+                        if (customerList.isEmpty()) {
+                            System.out.println("List is empty.");
+                        } else {
+                            for (int i = 0; i < customerList.size(); i++) {
+                                System.out.println((i + 1) + ". " + customerList.get(i));
+                            }
+                        }
+                    } else if (adminChoice.equals("2")) {
+                        System.out.println("\n--- ARCHIVED CUSTOMER RECORDS ---");
+                        if (archiveList.isEmpty()) {
+                            System.out.println("Archive is empty.");
+                        } else {
+                            for (String arch : archiveList) {
+                                System.out.println("- " + arch);
+                            }
+                        }
+                    } else if (adminChoice.equals("3")) {
+                        boolean inManage = true;
+                        while (inManage) {
+                            System.out.println("\n--- Management Options ---");
+                            System.out.println("1. REPLACE NAME\n2. ARCHIVE RECORD\n3. ADD NEW RECORD\n4. Back");
+                            System.out.print("Enter choice: ");
+                            String manageChoice = sc.nextLine();
+
+                            if (manageChoice.equals("1")) {
+                                try {
+                                    System.out.print("Enter Record Number to Edit: ");
+                                    int index = Integer.parseInt(sc.nextLine()) - 1;
+                                    String oldRecord = customerList.get(index);
+
+                                    String newName = "";
+                                    while (true) {
+                                        System.out.print("Enter Corrected Name: ");
+                                        newName = sc.nextLine();
+                                        if (newName.matches("[a-zA-Z\\s]+")) break;
+                                        else System.out.println("Invalid! Letters only.");
+                                    }
+
+                                    String details = oldRecord.substring(oldRecord.indexOf("|")); 
+                                    String updated = String.format("Name: %-12s %s", newName.toUpperCase(), details);
+                                    
+                                    customerList.set(index, updated);
+                                    System.out.println("Update Successful!");
+                                } catch (Exception e) { System.out.println("Invalid selection."); }
+
+                            } else if (manageChoice.equals("2")) {
+                                try {
+                                    System.out.print("Enter Number to Archive: ");
+                                    int index = Integer.parseInt(sc.nextLine()) - 1;
+                                    archiveList.add(customerList.get(index) + " [ARCHIVED]");
+                                    customerList.remove(index);
+                                    System.out.println("Moved to Archive!");
+                                } catch (Exception e) { System.out.println("Invalid selection."); }
+
+                            } else if (manageChoice.equals("3")) {
+                                System.out.println("\n--- MANUALLY ADD RECORD ---");
+                                String newName = "";
+                                while (true) {
+                                    System.out.print("Enter Customer Name: ");
+                                    newName = sc.nextLine();
+                                    if (newName.matches("[a-zA-Z\\s]+")) break;
+                                    else System.out.println("Invalid! Letters only.");
+                                }
+
+                                String service = "";
+                                double price = 0;
+                                boolean cancelAdd = false;
+
+                                while (true) {
+                                    System.out.println("\n--- SELECT SERVICES ---");
+                                    System.out.println("1. WASH ONLY (PHP 60.00)");
+                                    System.out.println("2. WASH AND DRY (PHP 160.00)");
+                                    System.out.println("3. Back");
+                                    System.out.print("Enter choice: ");
+                                    String srvChoice = sc.nextLine();
+
+                                    if (srvChoice.equals("1")) {
+                                        service = "Wash Only";
+                                        price = 60.0;
+                                        break;
+                                    } else if (srvChoice.equals("2")) {
+                                        service = "Wash and Dry";
+                                        price = 160.0;
+                                        break;
+                                    } else if (srvChoice.equals("3")) {
+                                        cancelAdd = true;
+                                        break;
+                                    } else {
+                                        System.out.println("Invalid choice! Please select 1, 2, or 3.");
+                                    }
+                                }
+
+                                if (!cancelAdd) {
+                                    int loads = 0;
+                                    while (true) {
+                                        try {
+                                            System.out.print("Enter Number of Loads: ");
+                                            loads = Integer.parseInt(sc.nextLine());
+                                            if (loads > 0) break; 
+                                            else System.out.println("Invalid! Please enter a number greater than 0.");
+                                        } catch (Exception e) {
+                                            System.out.println("Invalid input! Please enter a numeric value.");
+                                        }
+                                    }
+
+                                    double total = price * loads;
+                                    String formattedDate = LocalDateTime.now().format(dtf);
+                                    String recordString = String.format("Name: %-12s | Service: %-12s | Loads: %d | Total: PHP %.2f | Date: %s", 
+                                                                        newName.toUpperCase(), service, loads, total, formattedDate);
+                                    
+                                    customerList.add(recordString);
+                                    System.out.println("New Record Added Successfully!");
+                                }
+
+                            } else if (manageChoice.equals("4")) {
+                                inManage = false;
+                            } else {
+                                System.out.println("Invalid input! Please enter 1, 2, 3, or 4.");
+                            }
+                        }
+                    } else if (adminChoice.equals("4")) {
+                        inAdmin = false;
+                    } else {
+                        System.out.println("Invalid input! Please enter a number between 1 and 4.");
+                    }
+                }
+
+            } else if (mainChoice.equals("2")) {
+                boolean authenticated = false;
+                while (!authenticated) {
+                    System.out.println("\n--- Staff Login Required ---");
+                    System.out.print("Enter Username: ");
+                    String user = sc.nextLine();
+                    System.out.print("Enter Password: ");
+                    String pass = sc.nextLine();
+
+                    if (user.equals("staff") && pass.equals("123")) {
+                        System.out.println("Welcome Staff!");
+                        authenticated = true;
+                    } else {
+                        System.out.println("Invalid. Try again.");
+                    }
+                }
+
+                boolean staffActive = true;
+                while (staffActive) {
+                    String name = "";
+                    while (true) {
+                        System.out.print("\nInput Customer Name: ");
+                        name = sc.nextLine();
+                        if (name.matches("[a-zA-Z\\s]+")) break;
+                        else System.out.println("Invalid! Numbers not allowed.");
+                    }
+
+                    boolean inStaff = true;
+                    while (inStaff) {
+                        System.out.println("\n--- CHOOSE SERVICE FOR: " + name.toUpperCase() + " ---");
+                        System.out.println("1. WASH ONLY (PHP 60)\n2. WASH AND DRY (PHP 160)\n3. Back");
+                        System.out.print("Enter choice: ");
+                        String staffChoice = sc.nextLine();
+
+                        if (staffChoice.equals("1") || staffChoice.equals("2")) {
+                            double price = staffChoice.equals("1") ? 60.0 : 160.0;
+                            String service = staffChoice.equals("1") ? "Wash Only" : "Wash and Dry";
+
+                            System.out.print("INPUT NUMBER OF LOADS: ");
+                            try {
+                                int loads = Integer.parseInt(sc.nextLine());
+                                double total = price * loads;
+                                String formattedDate = LocalDateTime.now().format(dtf);
+
+                                String recordString = String.format("Name: %-12s | Service: %-12s | Loads: %d | Total: PHP %.2f | Date: %s", 
+                                                                    name.toUpperCase(), service, loads, total, formattedDate);
+                                customerList.add(recordString);
+
+                                System.out.println("\n===============================================");
+                                System.out.println("                OFFICIAL RECEIPT                ");
+                                System.out.println("===============================================");
+                                System.out.println(" Receipt No:    LND-" + (int) (Math.random() * 9000 + 1000));
+                                System.out.println(" Date:          " + formattedDate);
+                                System.out.println(" Customer:      " + name.toUpperCase());
+                                System.out.println("-----------------------------------------------");
+                                System.out.println(" Service:       " + service);
+                                System.out.println(" Loads:         " + loads);
+                                System.out.println(" Price/Load:    PHP " + price);
+                                System.out.println(" TOTAL AMOUNT:  PHP " + total);
+                                System.out.println("===============================================");
+                                System.out.println("   PLEASE SHOW THIS RECEIPT TO THE STAFF       ");
+                                System.out.println("      WHEN PICKING UP YOUR LAUNDRY BAGS.        ");
+                                System.out.println("===============================================");
+
+                                inStaff = false;
+                                staffActive = false; 
+
+                            } catch (Exception e) {
+                                System.out.println("Invalid input! Please enter a numeric value for loads.");
+                            }
+                        } else if (staffChoice.equals("3")) {
+                            inStaff = false;
+                            staffActive = false;
+                        } else {
+                            System.out.println("Invalid choice. Please enter 1, 2, or 3.");
+                        }
+                    }
+                }
+
+            } else if (mainChoice.equals("3")) {
+                System.out.println("Exiting System...");
+                running = false;
+            } else {
+                System.out.println("Invalid choice. Please enter 1, 2, or 3.");
+            }
+        }
+        sc.close();
+    }
+}
